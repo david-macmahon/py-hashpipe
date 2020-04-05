@@ -53,7 +53,17 @@ static PyMethodDef Status_methods[] = {
 		"Function returns true on success"
 	},
 	{"setdouble", (PyCFunction) Status_setDouble, METH_VARARGS,
-		"update status buffer with string value for given keyword. Function takes\n"
+		"update status buffer with double value for given keyword. Function takes\n"
+		"two arguments (keyword,value). First is a string, second is a float\n"
+		"Function returns true on success"
+	},
+	{"setint", (PyCFunction) Status_setInt, METH_VARARGS,
+		"update status buffer with int value for given keyword. Function takes\n"
+		"two arguments (keyword,value). First is a string, second is a int.\n"
+		"Function returns true on success"
+	},
+	{"setfloat", (PyCFunction) Status_setFloat, METH_VARARGS,
+		"update status buffer with float value for given keyword. Function takes\n"
 		"two arguments (keyword,value). First is a string, second is a float\n"
 		"Function returns true on success"
 	},
@@ -245,7 +255,7 @@ static PyObject * Status_setString(HashpipeStatusObj *self, PyObject *args)
 	char localkeyword[81],localvalue[81];
 	if(!PyArg_ParseTuple(args,"ss",&keyword,&value))
 	{
-		PyErr_SetString(PyExc_TypeError,"input has to be string");
+		PyErr_SetString(PyExc_TypeError,"input has to be string,string");
 		Py_RETURN_FALSE;
 	}
 	memcpy(localvalue,value,80);
@@ -269,7 +279,7 @@ static PyObject * Status_setDouble(HashpipeStatusObj *self, PyObject *args)
 	double value;
 	if(!PyArg_ParseTuple(args,"sd",&keyword,&value))
 	{
-		PyErr_SetString(PyExc_TypeError,"input has to be string");
+		PyErr_SetString(PyExc_TypeError,"input has to be string,double");
 		Py_RETURN_FALSE;
 	}
 	memcpy(localkeyword,keyword,80);
@@ -284,4 +294,47 @@ static PyObject * Status_setDouble(HashpipeStatusObj *self, PyObject *args)
 	Py_RETURN_TRUE;
 }
 
+static PyObject * Status_setFloat(HashpipeStatusObj *self, PyObject *args)
+{
+	char * keyword;
+	char localkeyword[81];
+	float value;
+	if(!PyArg_ParseTuple(args,"sf",&keyword,&value))
+	{
+		PyErr_SetString(PyExc_TypeError,"input has to be string,float");
+		Py_RETURN_FALSE;
+	}
+	memcpy(localkeyword,keyword,80);
+	localkeyword[80] = '\0';
+	if(hashpipe_status_lock(self->status))
+	{
+		PyErr_SetString(PyExc_RuntimeError,"unable to lock status buffer");
+		Py_RETURN_FALSE;
+	}
+	hputr4(self->status->buf, localkeyword, value);
+	hashpipe_status_unlock(self->status);
+	Py_RETURN_TRUE;
+}
+
+static PyObject * Status_setInt(HashpipeStatusObj *self, PyObject *args)
+{
+	char * keyword;
+	char localkeyword[81];
+	int value;
+	if(!PyArg_ParseTuple(args,"si",&keyword,&value))
+	{
+		PyErr_SetString(PyExc_TypeError,"input has to be string,int");
+		Py_RETURN_FALSE;
+	}
+	memcpy(localkeyword,keyword,80);
+	localkeyword[80] = '\0';
+	if(hashpipe_status_lock(self->status))
+	{
+		PyErr_SetString(PyExc_RuntimeError,"unable to lock status buffer");
+		Py_RETURN_FALSE;
+	}
+	hputi4(self->status->buf, localkeyword, value);
+	hashpipe_status_unlock(self->status);
+	Py_RETURN_TRUE;
+}
 // end
