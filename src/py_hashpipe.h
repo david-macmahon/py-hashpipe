@@ -25,11 +25,14 @@ static PyObject * Status_getID(HashpipeStatusObj *self, PyObject *Py_UNUSED(igno
 static PyObject * Status_getKey(HashpipeStatusObj *self, PyObject *Py_UNUSED(ignored));
 static PyObject * Status_getString(HashpipeStatusObj *self, PyObject *args);
 static PyObject * Status_getDouble(HashpipeStatusObj *self, PyObject *args);
+static PyObject * Status_getAll(HashpipeStatusObj *self, PyObject *Py_UNUSED(ignored));
 
 static PyObject * Status_setString(HashpipeStatusObj *self, PyObject *args);
 static PyObject * Status_setDouble(HashpipeStatusObj *self, PyObject *args);
 static PyObject * Status_setInt(HashpipeStatusObj *self, PyObject *args);
 static PyObject * Status_setFloat(HashpipeStatusObj *self, PyObject *args);
+static PyObject * Status_clearOne(HashpipeStatusObj *self, PyObject *args);
+static PyObject * Status_clearAll(HashpipeStatusObj *self, PyObject *Py_UNUSED(ignored));
 
 
 #endif

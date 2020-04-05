@@ -47,6 +47,16 @@ static PyMethodDef Status_methods[] = {
 		"fetch double for given keyword from the status buffer. Function takes\n"
 		"one string argument (keyword). Function returns float value"
 	},
+	{"getall", (PyCFunction) Status_getAll, METH_NOARGS,
+		"fetch all status buffer. Function takes no arguments. Returns string"
+	},
+	{"clearall", (PyCFunction) Status_clearAll, METH_NOARGS,
+		"clear status buffer. Function takes no arguments. Returns true on success"
+	},
+	{"clearkeyword", (PyCFunction) Status_clearOne, METH_VARARGS,
+		"Clear keyword and it's value from the buffer. Function takes\n"
+		"one string argument (keyword). Function returns float value"
+	},
 	{"setstring", (PyCFunction) Status_setString, METH_VARARGS,
 		"update status buffer with string value for given keyword. Function takes\n"
 		"two arguments (keyword,value). First is a string, second is also a string\n"
@@ -202,6 +212,19 @@ static PyObject * Status_getKey(HashpipeStatusObj *self, PyObject *Py_UNUSED(ign
 	return PyUnicode_FromString(self->key);
 }
 
+static PyObject * Status_getAll(HashpipeStatusObj *self, PyObject *Py_UNUSED(ignored))
+{
+	PyObject *message = NULL;
+	if(hashpipe_status_lock(self->status))
+	{
+		PyErr_SetString(PyExc_RuntimeError,"unable to lock status buffer");
+		Py_RETURN_FALSE;
+	}
+	message = PyUnicode_FromString(self->status->buf);
+	hashpipe_status_unlock(self->status);
+	return message;
+}
+
 static PyObject * Status_getString(HashpipeStatusObj *self, PyObject *args)
 {
 	char * keyword;
@@ -337,4 +360,32 @@ static PyObject * Status_setInt(HashpipeStatusObj *self, PyObject *args)
 	hashpipe_status_unlock(self->status);
 	Py_RETURN_TRUE;
 }
+
+static PyObject * Status_clearAll(HashpipeStatusObj *self, PyObject *Py_UNUSED(ignored))
+{
+	hashpipe_status_clear(self->status);
+	Py_RETURN_TRUE;
+}
+
+static PyObject * Status_clearOne(HashpipeStatusObj *self, PyObject *args)
+{
+	char * keyword;
+	char localkeyword[81];
+	if(!PyArg_ParseTuple(args,"s",&keyword))
+	{
+		PyErr_SetString(PyExc_TypeError,"input has to be string");
+		Py_RETURN_FALSE;
+	}
+	memcpy(localkeyword,keyword,80);
+	localkeyword[80] = '\0';
+	if(hashpipe_status_lock(self->status))
+	{
+		PyErr_SetString(PyExc_RuntimeError,"unable to lock status buffer");
+		Py_RETURN_FALSE;
+	}
+	hdel(self->status->buf, localkeyword);
+	hashpipe_status_unlock(self->status);
+	Py_RETURN_TRUE;
+}
+
 // end
